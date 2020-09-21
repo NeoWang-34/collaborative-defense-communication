@@ -17,7 +17,7 @@ def init():
     global g_socket_server
     g_socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
     g_socket_server.bind(ADDRESS)
-    g_socket_server.listen(5)  # 最大等待数（有很多人理解为最大连接数，其实是错误的）
+    g_socket_server.listen(5)  # 最大等待数
     print("server start，wait for client connecting...")
 
 def accept_client():

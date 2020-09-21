@@ -2,8 +2,8 @@ import socket
 import json
 
 ADDRESS = ('127.0.0.1', 8712)
-# 如果开多个客户端，这个client_type设置不同的值，比如客户端1为linxinfa，客户端2为linxinfa2
-client_type ='linxinfa'
+
+client_type =''
 
 def send_data(client, cmd, **kv):
     global client_type
