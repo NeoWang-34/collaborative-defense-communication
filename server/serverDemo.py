@@ -63,7 +63,7 @@ while 1:
     #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
     NotifyAll('Welcome ' + nick + ' to the room!')
     print(data)
-    print(str((threading.activeCount() + 1) / 2) + ' person(s)!')
+    print(str((threading.activeCount() + 1) // 2) + ' person(s)!')
     conn.send(data.encode('utf8'))
     threading.Thread(target = clientThreadIn , args = (conn, nick)).start()
     threading.Thread(target = ClientThreadOut , args = (conn, nick)).start()
