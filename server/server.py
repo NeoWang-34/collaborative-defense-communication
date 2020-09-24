@@ -1,73 +1,99 @@
-import socket  # 导入 socket 模块
+import socket
 from threading import Thread
+import sys
 import time
 import json
 
-
-ADDRESS = ('127.0.0.1', 8066)  # 绑定地址
- 
-g_socket_server = None  # 负责监听的socket
- 
-g_conn_pool = {}  # 连接池
+serverSocket = None
+clientSocketPool = {}  # client socket pools
 
 def init():
     """
-    初始化服务端
+    initialize server
     """
-    global g_socket_server
-    g_socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-    g_socket_server.bind(ADDRESS)
-    g_socket_server.listen(5)  # 最大等待数
+    global serverSocket
+    #address = (sys.argv[0],sys.argv[1])
+    address = ('127.0.0.1', 8235)
+    serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    
+    serverSocket.bind(address)
+    serverSocket.listen(10)
     print("server start，wait for client connecting...")
 
 def accept_client():
     """
-    接收新连接
+    establish new client connection
     """
+    global serverSocket
     while True:
-        client, info = g_socket_server.accept()  # 阻塞，等待客户端连接
-        # 给每个客户端创建一个独立的线程进行管理
-        thread = Thread(target=message_handle, args=(client, info))
-        # 设置成守护线程
+        clientSocket, clientAddr = serverSocket.accept()
+        # create an independent thread for each client to receive messages
+        thread = Thread(target=recvMsg, args=(clientSocket, clientAddr))
         thread.setDaemon(True)
         thread.start()
- 
- 
-def message_handle(client, info):
+
+
+def recvMsg(clientSocket, clientAddr):
     """
-    消息处理
+    handle received messages
     """
-    client.sendall("connect server successfully!".encode(encoding='utf8'))
+    global clientSocketPool
+    clientSocket.sendall("connect server successfully!".encode(encoding='utf8'))
     while True:
         try:
-            bytes = client.recv(1024)
+            bytes = clientSocket.recv(1024)
             msg = bytes.decode(encoding='utf8')
             jd = json.loads(msg)
-            cmd = jd['COMMAND']
-            client_type = jd['client_type']
+            cmd = jd['cmd']
+            clientName = jd['name']
             if 'CONNECT' == cmd:
-                g_conn_pool[client_type] = client
-                print('on client connect: ' + client_type, info)
+                clientSocketPool[clientName] = clientSocket
+                print('on client connect: ' + clientName, clientAddr)
             elif 'SEND_DATA' == cmd:
-                print('recv client msg: ' + client_type +':'+ jd['data'])
+                print('recv "%s" msg: "%s"'%(clientName, jd['data']))
         except Exception as e:
             print(e)
-            remove_client(client_type)
+            removeClient(clientName)
             break
 
-def remove_client(client_type):
-    client = g_conn_pool[client_type]
+def removeClient(clientName):
+    """
+    remove offline client
+    """
+    global clientSocketPool
+    clientSocket = clientSocketPool[clientName]
     if None != client:
-        client.close()
-        g_conn_pool.pop(client_type)
-        print("client offline: " + client_type)
+        clientSocket.close()
+        clientSocketPool.pop(clientName)
+        print("client offline: " + clientName)
+
+def sendMsg():
+    """
+    send messages from server
+    """
+    while True:
+        msg = input()
+        if msg != '':
+            clientName = input('Input client name >>')
+            sendMsgTo(clientName, msg)
+
+def sendMsgTo(clientName, msg):
+    """
+    send messages to client
+    """
+    global clientSocketPool
+    clientSocket = clientSocketPool[clientName]
+    jd = {}
+    jd['cmd'] = "SEND_DATA"
+    jd['name'] = "server"
+    jd['data'] = msg
+    jsonstr = json.dumps(jd)
+    print('send: ' + jsonstr)
+    clientSocket.sendall(jsonstr.encode('utf8'))
 
 if __name__ == '__main__':
     init()
-    # 新开一个线程，用于接收新连接
-    thread = Thread(target=accept_client)
-    thread.setDaemon(True)
-    thread.start()
-    # 主线程逻辑
+    Thread(target=accept_client).start()
+    Thread(target=sendMsg).start()
+    # main thread
     while True:
         time.sleep(0.1)

@@ -1,35 +1,59 @@
 import socket  
 import json
+from threading import Thread
+import sys
+import time
 
-ADDRESS = ('127.0.0.1', 8066)
+clientSocket = None
+clientName = ''
 
-client_type =''
-
-def send_data(client, cmd, kv):
-    global client_type
-    jd = {}
-    jd['COMMAND'] = cmd
-    jd['client_type'] = client_type
-    jd['data'] = kv
+def init():
+    global clientSocket
+    global clientName
+    #address = (sys.argv[0],sys.argv[1])
+    address = ('127.0.0.1', 8235)
+    clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    clientSocket.connect(address)
+    print(clientSocket.recv(1024).decode(encoding='utf8'))
+    clientName = input_clientName()
+    sendData(clientName, 'CONNECT', '')
     
+
+def input_clientName():
+    return input("input client name >> ")
+
+def sendData(clientName, cmd, msg):
+    global clientSocket
+    jd = {}
+    jd['cmd'] = cmd
+    jd['name'] = clientName
+    jd['data'] = msg
     jsonstr = json.dumps(jd)
     print('send: ' + jsonstr)
-    client.sendall(jsonstr.encode('utf8'))
+    clientSocket.sendall(jsonstr.encode('utf8'))
 
-def recv_data(client)
-
-def input_client_type():
-    return input("注册客户端，请输入名字 :")
-    
-if '__main__' == __name__:
-    client_type = input_client_type()
-    client = socket.socket() 
-    client.connect(ADDRESS)
-    print(client.recv(1024).decode(encoding='utf8'))
-    send_data(client, 'CONNECT', '')
-    
-
+def recvMsg():
+    global clientSocket
     while True:
-        a=input("请输入要发送的信息:")
-        send_data(client, 'SEND_DATA', a)
-        
+        try:
+            msg = clientSocket.recv(1024).decode(encoding='utf8')
+            jd = json.loads(msg)
+            cmd = jd['cmd']
+            name = jd['name']
+            if 'SEND_DATA' == cmd:
+                print('recv "%s" msg: "%s"'%(name, jd['data']))
+        except Exception as e:
+            break
+
+def sendMsg():
+    global clientName
+    while True:
+        msg = input()
+        sendData(clientName, 'SEND_DATA', msg)
+
+if '__main__' == __name__:
+    init()
+    Thread(target = recvMsg).start()
+    Thread(target = sendMsg).start()
+    while True:
+        time.sleep(0.1)
