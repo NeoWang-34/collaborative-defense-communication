@@ -4,7 +4,7 @@ import time
 import json
 
 
-ADDRESS = ('127.0.0.1', 8712)  # 绑定地址
+ADDRESS = ('127.0.0.1', 8066)  # 绑定地址
  
 g_socket_server = None  # 负责监听的socket
  
@@ -49,7 +49,7 @@ def message_handle(client, info):
                 g_conn_pool[client_type] = client
                 print('on client connect: ' + client_type, info)
             elif 'SEND_DATA' == cmd:
-                print('recv client msg: ' + client_type, jd['data'])
+                print('recv client msg: ' + client_type +':'+ jd['data'])
         except Exception as e:
             print(e)
             remove_client(client_type)

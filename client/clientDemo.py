@@ -9,6 +9,7 @@ nick = ''
 def DealOut(s):
     global nick, outString
     while True:
+        outString = input("input:")
         outString = nick + ': ' + outString
         s.send(outString.encode('utf8'))
  
@@ -17,10 +18,7 @@ def DealIn(s):
     while True:
         try:
             inString = s.recv(1024).decode(encoding='utf8')
-            if not inString:
-                break
-            if outString != inString:
-                print(inString)
+            print("recv:" + inString)
         except:
             break
         
