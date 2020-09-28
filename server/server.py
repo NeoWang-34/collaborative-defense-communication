@@ -13,7 +13,7 @@ def init():
     """
     global serverSocket
     #address = (sys.argv[0],sys.argv[1])
-    address = ('127.0.0.1', 8235)
+    address = ('127.0.0.1', 8888)
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    
     serverSocket.bind(address)
     serverSocket.listen(10)
