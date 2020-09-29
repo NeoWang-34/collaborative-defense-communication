@@ -11,7 +11,7 @@ def init():
     global clientSocket
     global clientName
     #address = (sys.argv[0],sys.argv[1])
-    address = ('127.0.0.1', 8890)
+    address = ('127.0.0.1', 8888)
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     clientSocket.connect(address)
     print(clientSocket.recv(1024).decode(encoding='utf8'))

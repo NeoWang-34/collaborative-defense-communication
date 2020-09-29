@@ -13,7 +13,7 @@ def init():
     """
     global serverSocket
     #address = (sys.argv[0],sys.argv[1])
-    address = ('127.0.0.1', 8890)
+    address = ('127.0.0.1', 8889)
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    
     serverSocket.bind(address)
     serverSocket.listen(10)
@@ -42,6 +42,7 @@ def recvMsg(clientSocket, clientAddr):
         try:
             bytes = clientSocket.recv(1024)
             msg = bytes.decode(encoding='utf8')
+            '''
             jd = json.loads(msg)
             cmd = jd['cmd']
             clientName = jd['name']
@@ -50,6 +51,8 @@ def recvMsg(clientSocket, clientAddr):
                 print('on client connect: ' + clientName, clientAddr)
             elif 'SEND_DATA' == cmd:
                 print('recv "%s" msg: "%s"'%(clientName, jd['data']))
+                '''
+            print('recv :' + msg)
         except Exception as e:
             print(e)
             removeClient(clientName)
