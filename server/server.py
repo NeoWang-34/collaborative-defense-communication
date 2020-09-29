@@ -61,7 +61,7 @@ def removeClient(clientName):
     """
     global clientSocketPool
     clientSocket = clientSocketPool[clientName]
-    if None != client:
+    if None != clientSocket:
         clientSocket.close()
         clientSocketPool.pop(clientName)
         print("client offline: " + clientName)
@@ -90,7 +90,7 @@ def sendMsgTo(clientName, msg):
     print('send: ' + jsonstr)
     clientSocket.sendall(jsonstr.encode('utf8'))
 
-if __name__ == '__main__':
+if '__main__' == __name__:
     init()
     Thread(target=accept_client).start()
     Thread(target=sendMsg).start()
