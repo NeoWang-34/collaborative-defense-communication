@@ -23,7 +23,7 @@ class Detector:
 			cmd = input('>>')
 			if cmd == 'History':
 				# show history list
-				jdstr = json.dumps(self.__historyList, indent=4, separators=(',', ': '))
+				jdstr = json.dumps(self.__historyList, indent=2, separators=(',', ': '))
 				print(jdstr)
 			elif cmd == 'Match':
 				# handle cmd -Match-
@@ -57,7 +57,7 @@ class Detector:
 		'''
 		send json msg
 		'''
-		jdstr = json.dumps(msg, indent=4, separators=(',', ': '))
+		jdstr = json.dumps(msg, indent=2, separators=(',', ': '))
 		print('send to client ' + self.__detectorSocket.getpeername()[0] \
 			+ ':' + str(self.__detectorSocket.getpeername()[1]) + ' ->\n' + jdstr)
 		self.__detectorSocket.sendall(jdstr.encode('utf8'))

@@ -33,12 +33,7 @@ class Client:
 		'''
 		while True:
 			detectorSocket, detectorAddr = self.__socket4Detector.accept()
-			# thread synchronization when printing
-			try:
-				self.__printLock.acquire()
-				print("Detector " + detectorAddr[0] + ':' + str(detectorAddr[1]) + " connected.\n")
-			finally:
-				self.__printLock.release()
+			print("Detector " + detectorAddr[0] + ':' + str(detectorAddr[1]) + " connected.\n")
 			self.__detectorPool[detectorAddr] = detectorSocket
 			# create a thread for each detector to receive message
 			thread = Thread(target=self.__recvDetectorMsg, args=(detectorSocket, detectorAddr ))
@@ -56,22 +51,20 @@ class Client:
 				msg = bytes.decode(encoding='utf8')
 				if len(msg) == 0:
 					raise Exception('receive empty message.')
-				# thread synchronization when printing
-				try:
-					self.__printLock.acquire()
-					print('recv Detector ' + detectorAddr[0] + ':' + str(detectorAddr[1]) + ' ->\n' + msg + '\n')
-				finally:
-					self.__printLock.release()
-				jd = json.loads(msg)
-				self.__recvHistoryList.append(jd)
+				print('recv Detector ' + detectorAddr[0] + ':' + str(detectorAddr[1]) + ' ->\n' + msg + '\n')
+				recvjd = json.loads(msg)
+				self.__recvHistoryList.append(recvjd)
 
 				# process according to the message
 				if( jd['command'] == 'Match'):
-					self.__filteringRulesInstall(jd)
+					msg = self.__filteringRulesInstall(recvjd)
+				else:
+					continue
+				self.__sendToServer(msg)
 
 			except Exception as e:
 				# remove offline detector
-				print(e)
+				#print(e)
 				self.__removeDetector(detectorAddr)
 				break
 
@@ -85,8 +78,20 @@ class Client:
 			self.__detectorPool.pop(detectorAddr)
 			print("Detector " + detectorAddr[0] + ':' + str(detectorAddr[1]) + " is offline.\n")
 
-	def __filteringRulesInstall(self, jd):
+	def __filteringRulesInstall(self, recvjd):
+		'''
+		filtering rules install
+		'''
 		
+
+	def __sendToServer(self, msg):
+		'''
+		send json msg
+		'''
+		jdstr = json.dumps(msg, indent=2, separators=(',', ': '))
+		print('send to server ' + self.__clientSocket.getpeername()[0] \
+			+ ':' + str(self.__clientSocket.getpeername()[1]) + ' ->\n' + jdstr)
+		self.__clientSocket.sendall(jdstr.encode('utf8'))
 
 if __name__ == '__main__':
 	client = Client(sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4]))
