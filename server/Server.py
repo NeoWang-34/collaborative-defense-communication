@@ -54,7 +54,7 @@ class Server:
 				self.__sendToClient(msg, clientSocket)
 			except Exception as e:
 				# remove offline client
-				print(e + '\n')
+				print(e)
 				self.__removeClient(clientAddr)
 				break
 

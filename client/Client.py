@@ -64,7 +64,7 @@ class Client:
 				self.__sendToServer(msg)
 			except Exception as e:
 				# remove offline detector
-				print(e + '\n')
+				print(e)
 				self.__removeDetector(detectorAddr)
 				break
 
@@ -130,7 +130,7 @@ class Client:
 				jdstr = json.dumps(jd, indent=2, separators=(',', ': '))
 				print('recv respnose msg ->\n' + jdstr + '\n')
 			except Exception as e:
-				print(e + '\n')
+				print(e)
 				break
 
 
