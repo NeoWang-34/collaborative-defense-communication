@@ -13,9 +13,12 @@ class Client:
 	__recvHistoryList = []      # history list to record received messages from detectors
 	__sendHistoryList = {}      # history list to record sent messages to the server, the key is Uri
 	__respHistoryList = {}      # history list to record response messages from the server, the key is uri
+	__whitelist = []
 	__printLock = Lock()
 
 	def __init__(self, clientIp, clientPort, serverIp, serverPort):
+		with open('whitelist.json', 'r', encoding='utf8') as fp:
+			self.__whitelist = json.load(fp)
 		# connect to the server
 		self.__clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.__clientSocket.connect((serverIp, serverPort))
@@ -91,7 +94,7 @@ class Client:
 			cuid = input('input cuid: ')
 		finally:
 			self.__printLock.release()
-			time.sleep(0.05)
+			time.sleep(0.1)
 		head['Uri'] = 'CoDef/FilterRule/cuid=%s/acl=Drop-Tcp-Null' % (cuid)
 		data = {}
 		ipv4Match = {}
@@ -132,10 +135,46 @@ class Client:
 			except Exception as e:
 				print(e)
 				break
-
+	
+	def handleCMD(self):
+		while True:
+			try:
+				self.__printLock.acquire()
+				cmd = input()
+				if cmd == 'showWhitelist':
+					# show the whitelist
+					jdstr = json.dumps(self.__whitelist, indent=2, separators=(',', ': '))
+					print(jdstr)
+				elif cmd == 'addWhitelist':
+					# add an ip in whitelist
+					newIp = input('new white ip: ')
+					self.__whitelist.append(newIp)
+					with open('whitelist.json','w',encoding='utf8')as fp:
+						json.dump(self.__whitelist, fp, ensure_ascii=False, indent=2, separators=(',', ': '))
+					print("add white ip '%s' successfully!\n"%(newIp,))
+				elif cmd == 'delWhitelist':
+					# delte an ip in whitelist
+					delIp = input('delete white ip: ')
+					if delIp in self.__whitelist:
+						self.__whitelist.remove(delIp)
+						with open('whitelist.json','w',encoding='utf8')as fp:
+							json.dump(self.__whitelist, fp, ensure_ascii=False, indent=2, separators=(',', ': '))
+						print("delete white ip '%s' successfully!\n"%(delIp,))
+					else:
+						print("ip '%s' is not in whitelist!\n"%(delIp,))
+				else:
+					print('  Sorry, no such cmd!\n' +
+						'  usable cmd:\n' +
+						'      showWhitelist    -- to show the whitelist\n' +
+						'      addWhitelist     -- to add an ip in whitelist\n' +
+						'      delWhitelist     -- to delete an ip in whitelist\n')
+			finally:
+				self.__printLock.release()
+				time.sleep(0.1)
 
 
 if __name__ == '__main__':
 	client = Client(sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4]))
 	Thread(target=client.acceptDetector).start()
 	Thread(target=client.recvFromServer).start()
+	Thread(target=client.handleCMD).start()
