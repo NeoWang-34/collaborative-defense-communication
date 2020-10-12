@@ -87,7 +87,7 @@ class Client:
 		'''
 		jd = {}
 		head = {}
-		head['Type'] = 'POST'
+		head['Type'] = 'PUT'
 		head['Code'] = '002'
 		try:
 			self.__printLock.acquire()
@@ -164,10 +164,10 @@ class Client:
 						print("ip '%s' is not in whitelist!\n"%(delIp,))
 				else:
 					print('  Sorry, no such cmd!\n' +
-						'  usable cmd:\n' +
-						'      showWhitelist    -- to show the whitelist\n' +
-						'      addWhitelist     -- to add an ip in whitelist\n' +
-						'      delWhitelist     -- to delete an ip in whitelist\n')
+						  '  usable cmd:\n' +
+						  '      showWhitelist    -- to show the whitelist\n' +
+						  '      addWhitelist     -- to add an ip in whitelist\n' +
+						  '      delWhitelist     -- to delete an ip in whitelist\n')
 			finally:
 				self.__printLock.release()
 				time.sleep(0.1)

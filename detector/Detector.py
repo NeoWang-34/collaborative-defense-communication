@@ -29,7 +29,38 @@ class Detector:
 				# handle cmd -Match-
 				sourIp = input('sourIp:')
 				destIp = input('destIp:')
-				msg = self.__dataToMsg(cmd, sourIp, destIp, [], 1005, 80, ['NOTANY 255'])
+				print('condition1->')
+				condition1 = {}
+				length = input('length:')
+				if length != '':
+					condition1['length'] = int(length)
+				protocol = input('protocol')
+				if protocol != '':
+					condition1['protocol'] = protocol
+				if fragment != '':
+					condition1['fragment'] = fragment	
+				sourPort = input('sourPort:')
+				destPort = input('destPort:')
+				print('condition2->')
+				condition2 = {}
+				protocol = input('protocol')
+				if protocol == 'TCP':
+					bitmask = input('bitmask:')
+					if bitmask != '':
+						condition2['bitmask'] = bitmask
+				elif protocol == 'UDP':
+					length = input('length:')
+					if length != '':
+						condition2['length'] = int(length)
+				elif protocol == 'ICMP':
+					Type = input('type:')
+					if Type != '':
+						condition2['type'] = int(Type)
+					code = ipnut('code:')
+					if code != '':
+						condition2['code'] = int(code)
+
+				msg = self.__dataToMsg(cmd, sourIp, destIp, condition1, sourPort, destPort, condition2)
 				self.__sendToClient(msg)
 			else:
 				print('  Sorry, no such cmd!\n' +
