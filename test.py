@@ -1,4 +1,10 @@
 import json
+import time
 
-a=input()
-print(int(a)+1)
+a = {1:{},2:'2'}
+b = a[1]
+b[123]=1
+
+
+print(a)
+print(b)

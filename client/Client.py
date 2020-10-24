@@ -15,8 +15,10 @@ class Client:
 	__respHistoryList = {}      # history list to record response messages from the server, the key is uri
 	__whitelist = []
 	__printLock = Lock()
+	__cuid = None
 
 	def __init__(self, clientIp, clientPort, serverIp, serverPort):
+		self.__cuid = clientIp + ':' + str(clientPort)
 		with open('whitelist.json', 'r', encoding='utf8') as fp:
 			self.__whitelist = json.load(fp)
 		# connect to the server
@@ -60,8 +62,11 @@ class Client:
 				self.__recvHistoryList.append(recvjd)
 
 				# process according to the message
-				if( recvjd['command'] == 'Match'):
-					msg = self.__filteringRulesInstall(recvjd)
+				if recvjd['command'] == 'Match':
+					if 'bitmask' in recvjd['condition2']:
+						msg = self.__filteringRulesInstall(recvjd)
+					else:
+						continue
 				else:
 					continue
 				self.__sendToServer(msg)
@@ -89,33 +94,53 @@ class Client:
 		head = {}
 		head['Type'] = 'PUT'
 		head['Code'] = '002'
-		try:
-			self.__printLock.acquire()
-			cuid = input('input cuid: ')
-		finally:
-			self.__printLock.release()
-			time.sleep(0.1)
-		head['Uri'] = 'CoDef/FilterRule/cuid=%s/acl=Drop-Tcp-Null' % (cuid)
+		head['Uri'] = 'CoDef/FilterRule/cuid=%s' % (self.__cuid)
+		#/acl=Drop-Tcp-Null
 		data = {}
 		ipv4Match = {}
 		ipv4Match['srcNetwork'] = recvjd['sourIp'] + '/32'
 		ipv4Match['destNetwork'] = recvjd['destIp'] + '/32'
 		tcpMatch = {}
-		s = recvjd['condition2'][0].split()
+		s = recvjd['condition2']['bitmask'].split()
 		tcpMatch['op'] = s[0]
 		tcpMatch['bitmask'] = int(s[1])
 		data['Ipv4Match'] = ipv4Match
 		data['TcpMatch'] = tcpMatch
-		data['Action'] = 'DROP/RATE_LIMIT 20.00'
+
+		if s[0] == 'Match':
+			data['Acl'] = self.__handleMatch(int(s[1]))
+			data['Action'] = 'DROP'
+		else:
+			pass
+
 		jd['Head'] = head
 		jd['Data'] = data
 		return jd
 	
+	def __handleMatch(self, bitmask):
+		if bitmask == 0:
+			return 'Drop_Tcp_Null-%f' % (time.time())
+		if bitmask == 1:
+			return 'Drop_Fin-%f' % (time.time())
+		if bitmask == 3:
+			return 'Drop_Syn_Fin-%f' % (time.time())
+		if bitmask == 5:
+			return 'Drop_Fin_Rst-%f' % (time.time())
+		if bitmask == 6:
+			return 'Drop_Syn_Rst-%f' % (time.time())
+		if bitmask == 8:
+			return 'Drop_Psh_Fin_Urg-%f' % (time.time())
+		if bitmask == 32:
+			return 'Drop_Urg-%f' % (time.time())
+		if bitmask == 41:
+			return 'Drop_Psh_Fin_Urg-%f' % (time.time())
+		return ''
+
 	def __sendToServer(self, msg):
 		'''
 		send json msg
 		'''
-		self.__sendHistoryList[msg['Head']['Uri']] = msg
+		self.__sendHistoryList[msg['Data']['Acl']] = msg
 		jdstr = json.dumps(msg, indent=2, separators=(',', ': '))
 		print('send to server ' + self.__clientSocket.getpeername()[0] \
 			+ ':' + str(self.__clientSocket.getpeername()[1]) + ' ->\n' + jdstr + '\n')

@@ -44,10 +44,10 @@ class Server:
 					raise Exception('receive empty message.')
 				print('recv Client ' + clientAddr[0] + ':' + str(clientAddr[1]) + ' ->\n' + msg + '\n')
 				recvjd = json.loads(msg)
-				self.__recvHistoryList[recvjd["Head"]["Uri"]] = recvjd
+				self.__recvHistoryList[recvjd["Data"]["Acl"]] = recvjd
 
 				# process according to the message
-				if( recvjd['Head']['Uri'].endswith('Drop-Tcp-Null') ):
+				if( recvjd['Data']['Action'] == 'DROP' ):
 					msg = self.__filteringRulesInstall(recvjd)
 				else:
 					continue
@@ -73,7 +73,7 @@ class Server:
 		head = {}
 		head['Type'] = 'CREATED'
 		head['Code'] = '201'
-		head['Uri']  = recvjd['Head']['Uri']
+		head['Uri']  = recvjd['Head']['Uri'] + '/acl=' +recvjd['Data']['Acl']
 		jd['Head'] = head
 		return jd
 

@@ -34,16 +34,14 @@ class Detector:
 				length = input('length:')
 				if length != '':
 					condition1['length'] = int(length)
-				protocol = input('protocol')
-				if protocol != '':
-					condition1['protocol'] = protocol
+				fragment = input('fragment:')
 				if fragment != '':
 					condition1['fragment'] = fragment	
 				sourPort = input('sourPort:')
 				destPort = input('destPort:')
 				print('condition2->')
 				condition2 = {}
-				protocol = input('protocol')
+				protocol = input('protocol:')
 				if protocol == 'TCP':
 					bitmask = input('bitmask:')
 					if bitmask != '':
